@@ -38,6 +38,38 @@ canvas{border:2px solid var(--border);display:block;max-width:100%;}
 .diff-desc{font-size:0.32rem;color:#555;text-align:center;line-height:1.9;}
 .start-btn{font-family:'Press Start 2P',monospace;font-size:0.58rem;padding:13px 34px;border:2px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer;border-radius:6px;margin-top:4px;transition:all .15s;box-shadow:0 0 20px #ff2d7860;}
 .start-btn:hover{background:transparent;color:var(--accent);}
+
+/* === HANGMAN STYLES === */
+#hangman-area{display:flex;flex-direction:column;align-items:center;gap:10px;width:100%;max-width:500px;}
+#hangman-word{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:8px 0;}
+.letter-box{width:26px;height:32px;border-bottom:2px solid var(--cyan);display:flex;align-items:flex-end;justify-content:center;font-size:0.7rem;color:#fff;padding-bottom:2px;}
+#hangman-wrong{font-size:0.38rem;color:#ff2d78;margin:4px 0;min-height:16px;letter-spacing:2px;}
+#hangman-keyboard{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;max-width:480px;margin-top:4px;}
+.key-btn{font-family:'Press Start 2P',monospace;font-size:0.38rem;padding:7px 9px;border:2px solid var(--border);background:var(--panel);color:#aaa;cursor:pointer;border-radius:4px;transition:all .12s;min-width:32px;}
+.key-btn:hover:not(:disabled){border-color:var(--yellow);color:var(--yellow);}
+.key-btn:disabled{opacity:0.3;cursor:default;}
+.key-btn.correct{border-color:var(--cyan);color:var(--cyan);background:#001a1f;}
+.key-btn.wrong{border-color:#ff2d78;color:#ff2d78;background:#180008;}
+#hangman-msg{font-size:0.52rem;min-height:22px;letter-spacing:2px;}
+#hangman-category{font-size:0.33rem;color:#555;margin-bottom:2px;}
+
+/* === MEMORY CARD STYLES === */
+#memory-area{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%;max-width:520px;}
+#memory-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;width:100%;max-width:420px;}
+.mem-card{aspect-ratio:1;border:2px solid var(--border);border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.5rem;background:var(--panel);transition:transform .18s,border-color .18s,background .18s;position:relative;overflow:hidden;user-select:none;}
+.mem-card:hover:not(.flipped):not(.matched){border-color:var(--cyan);transform:scale(1.05);}
+.mem-card.flipped,.mem-card.matched{background:#0a1020;border-color:var(--cyan);}
+.mem-card.matched{border-color:var(--yellow);box-shadow:0 0 12px #ffe60044;}
+.mem-card .front{position:absolute;font-size:1.4rem;opacity:0;transition:opacity .18s;}
+.mem-card .back{position:absolute;font-size:1.1rem;opacity:1;color:#1e1e40;transition:opacity .18s;}
+.mem-card.flipped .front,.mem-card.matched .front{opacity:1;}
+.mem-card.flipped .back,.mem-card.matched .back{opacity:0;}
+#memory-sel{display:flex;flex-direction:column;align-items:center;gap:14px;background:rgba(0,0,0,0.88);border:2px solid var(--border);border-radius:10px;padding:22px 24px;margin-top:10px;width:420px;max-width:95vw;}
+#memory-sel h2{font-size:0.58rem;letter-spacing:2px;background:linear-gradient(90deg,var(--yellow),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.mem-size-btn{font-family:'Press Start 2P',monospace;font-size:0.36rem;padding:6px 11px;border:2px solid var(--border);background:var(--panel);color:#666;cursor:pointer;border-radius:4px;transition:all .15s;}
+.mem-size-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+.mem-size-btn.on{border-color:var(--cyan);color:var(--cyan);background:#001a1f;}
+#memory-result{font-size:0.46rem;min-height:20px;letter-spacing:2px;text-align:center;}
 </style>
 </head>
 <body>
@@ -51,6 +83,8 @@ canvas{border:2px solid var(--border);display:block;max-width:100%;}
   <button class="tab-btn active" onclick="showGame('tetris',this)">&#128310; TETRIS</button>
   <button class="tab-btn" onclick="showGame('heart',this)">&#10084; CATCH HEART</button>
   <button class="tab-btn" onclick="showGame('flappy',this)">&#128038; FLAPPY BIRD</button>
+  <button class="tab-btn" onclick="showGame('hangman',this)">&#128121; HANGMAN</button>
+  <button class="tab-btn" onclick="showGame('memory',this)">&#127183; MEMORY</button>
 </div>
 
 <!-- TETRIS -->
@@ -92,6 +126,40 @@ canvas{border:2px solid var(--border);display:block;max-width:100%;}
   <canvas id="c-flappy" width="400" height="540"></canvas>
   <button class="btn" onclick="flappyStart()">START</button>
   <div class="hint">SPACE / CLICK / TAP &#8594; FLAP</div>
+</div>
+
+<!-- HANGMAN -->
+<div class="game-wrapper" id="game-hangman">
+  <div class="hud">YANLIS: <span id="hm-wrong-count">0</span>/6 &nbsp; KAZANILAN: <span id="hm-wins">0</span> &nbsp; KAYBEDILEN: <span id="hm-losses">0</span></div>
+  <canvas id="c-hangman" width="260" height="240"></canvas>
+  <div id="hangman-area">
+    <div id="hangman-category"></div>
+    <div id="hangman-word"></div>
+    <div id="hangman-wrong"></div>
+    <div id="hangman-msg"></div>
+    <div id="hangman-keyboard"></div>
+  </div>
+  <button class="btn" style="margin-top:14px" onclick="hangmanStart()">YENİ OYUN</button>
+  <div class="hint">Harflere tıkla veya klavye kullan</div>
+</div>
+
+<!-- MEMORY CARD -->
+<div class="game-wrapper" id="game-memory">
+  <div class="hud">HAMLE: <span id="m-moves">0</span> &nbsp; EŞLEŞTİ: <span id="m-matched">0</span> &nbsp; EN İYİ: <span id="m-best">--</span></div>
+  <div id="memory-area">
+    <div id="memory-result"></div>
+    <div id="memory-grid"></div>
+  </div>
+  <div id="memory-sel">
+    <h2>&#127183; MEMORY</h2>
+    <div class="sel-row">
+      <span>BOYUT:</span>
+      <button class="mem-size-btn on" onclick="pickMemSize(this,4)">4x4</button>
+      <button class="mem-size-btn"   onclick="pickMemSize(this,6)">4x6</button>
+    </div>
+    <button class="start-btn" onclick="memoryStart()">&#9654; BASLA</button>
+  </div>
+  <div class="hint">Kartları eşleştir &nbsp;|&nbsp; Tüm çiftleri bul</div>
 </div>
 
 <script>
@@ -214,13 +282,9 @@ function showGame(name, btn) {
     var next=[];
     for(var i=0;i<items.length;i++){
       var it=items[i];it.y+=it.vy;
-      // Her item kendi gercek boyutuna gore carpisme
-      // Kalp: merkezi (x,y), alt ucu yaklasik y + sz
-      // Bomba: merkezi (x,y), yaricapi r
       var itemBottom = it.type==='heart' ? it.y + it.sz : it.y + it.r;
       var itemLeft   = it.type==='heart' ? it.x - it.sz*0.75 : it.x - it.r;
       var itemRight  = it.type==='heart' ? it.x + it.sz*0.75 : it.x + it.r;
-      // Sadece basket ust kenarina degdiginde tetikle
       var hx = itemRight > basket.x && itemLeft < basket.x + basket.w;
       var hy = itemBottom >= basket.y && itemBottom <= basket.y + basket.h + it.vy + 2;
       if(hx&&hy){if(it.type==='heart'){score++;document.getElementById('h-score').textContent=score;}else{lives--;document.getElementById('h-lives').textContent=lives;if(lives<=0){endGame('GAME OVER','#ff2d78');return;}}continue;}
@@ -306,6 +370,280 @@ function showGame(name, btn) {
   cv.addEventListener('click',flap);
   cv.addEventListener('touchstart',function(e){e.preventDefault();flap();},{passive:false});
   init();drawIdle();
+})();
+
+/* === HANGMAN === */
+(function(){
+  var cv=document.getElementById('c-hangman'), cx=cv.getContext('2d');
+  var W=cv.width, H=cv.height;
+  var MAX_WRONG=6;
+  var WORDS=[
+    {word:'KELEBEK',cat:'HAYVAN'},{word:'ASLAN',cat:'HAYVAN'},{word:'PENGUEN',cat:'HAYVAN'},
+    {word:'TIMSAH',cat:'HAYVAN'},{word:'ZEBRA',cat:'HAYVAN'},{word:'KARTAL',cat:'HAYVAN'},
+    {word:'ISTANBUL',cat:'SEHIR'},{word:'ANKARA',cat:'SEHIR'},{word:'IZMIR',cat:'SEHIR'},
+    {word:'ANTALYA',cat:'SEHIR'},{word:'TRABZON',cat:'SEHIR'},{word:'KONYA',cat:'SEHIR'},
+    {word:'ELMA',cat:'MEYVE'},{word:'CILEK',cat:'MEYVE'},{word:'MANGO',cat:'MEYVE'},
+    {word:'KAVUN',cat:'MEYVE'},{word:'PORTAKAL',cat:'MEYVE'},{word:'KARPUZ',cat:'MEYVE'},
+    {word:'FUTBOL',cat:'SPOR'},{word:'TENIS',cat:'SPOR'},{word:'VOLEYBOL',cat:'SPOR'},
+    {word:'YUZME',cat:'SPOR'},{word:'BOKS',cat:'SPOR'},{word:'BASKETBOL',cat:'SPOR'},
+    {word:'BILGISAYAR',cat:'TEKNOLOJI'},{word:'TELEFON',cat:'TEKNOLOJI'},{word:'KLAVYE',cat:'TEKNOLOJI'},
+    {word:'KAMERA',cat:'TEKNOLOJI'},{word:'TABLET',cat:'TEKNOLOJI'},{word:'INTERNET',cat:'TEKNOLOJI'}
+  ];
+  var word, guessed, wrongLetters, wrongCount, alive, wins, losses;
+  wins=0; losses=0; alive=false;
+
+  function drawGallows(n){
+    cx.clearRect(0,0,W,H);
+    cx.strokeStyle='#1e1e40'; cx.lineWidth=2;
+    cx.fillStyle='#070714'; cx.fillRect(0,0,W,H);
+    // Stars bg
+    cx.fillStyle='rgba(255,255,255,0.2)';
+    for(var i=0;i<30;i++) cx.fillRect((i*67)%W,(i*53)%(H-20),1,1);
+
+    cx.strokeStyle='#00f0ff'; cx.lineWidth=3; cx.lineCap='round'; cx.lineJoin='round';
+    // Base
+    cx.beginPath(); cx.moveTo(20,H-15); cx.lineTo(W-20,H-15); cx.stroke();
+    // Pole
+    cx.beginPath(); cx.moveTo(60,H-15); cx.lineTo(60,20); cx.stroke();
+    // Top bar
+    cx.beginPath(); cx.moveTo(60,20); cx.lineTo(170,20); cx.stroke();
+    // Rope
+    cx.beginPath(); cx.moveTo(170,20); cx.lineTo(170,50); cx.stroke();
+
+    cx.strokeStyle='#ff2d78'; cx.lineWidth=3;
+    // Head
+    if(n>=1){cx.beginPath();cx.arc(170,68,18,0,Math.PI*2);cx.stroke();}
+    // Body
+    if(n>=2){cx.beginPath();cx.moveTo(170,86);cx.lineTo(170,148);cx.stroke();}
+    // Left arm
+    if(n>=3){cx.beginPath();cx.moveTo(170,100);cx.lineTo(140,130);cx.stroke();}
+    // Right arm
+    if(n>=4){cx.beginPath();cx.moveTo(170,100);cx.lineTo(200,130);cx.stroke();}
+    // Left leg
+    if(n>=5){cx.beginPath();cx.moveTo(170,148);cx.lineTo(145,185);cx.stroke();}
+    // Right leg
+    if(n>=6){cx.beginPath();cx.moveTo(170,148);cx.lineTo(195,185);cx.stroke();}
+
+    if(n===MAX_WRONG){
+      // X eyes
+      cx.strokeStyle='#ff2d78'; cx.lineWidth=2;
+      cx.beginPath();cx.moveTo(162,62);cx.lineTo(166,66);cx.stroke();
+      cx.beginPath();cx.moveTo(166,62);cx.lineTo(162,66);cx.stroke();
+      cx.beginPath();cx.moveTo(174,62);cx.lineTo(178,66);cx.stroke();
+      cx.beginPath();cx.moveTo(178,62);cx.lineTo(174,66);cx.stroke();
+    } else if(n>0){
+      // Eyes
+      cx.fillStyle='#ff2d78';
+      cx.beginPath();cx.arc(164,64,2.5,0,Math.PI*2);cx.fill();
+      cx.beginPath();cx.arc(176,64,2.5,0,Math.PI*2);cx.fill();
+    }
+  }
+
+  function buildWordDisplay(){
+    var wd=document.getElementById('hangman-word');
+    wd.innerHTML='';
+    for(var i=0;i<word.length;i++){
+      var box=document.createElement('div');
+      box.className='letter-box';
+      if(guessed.indexOf(word[i])!==-1) box.textContent=word[i];
+      else box.textContent='';
+      wd.appendChild(box);
+    }
+  }
+
+  function buildKeyboard(){
+    var kb=document.getElementById('hangman-keyboard');
+    kb.innerHTML='';
+    var alphabet='ABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZ';
+    for(var i=0;i<alphabet.length;i++){
+      (function(letter){
+        var btn=document.createElement('button');
+        btn.className='key-btn';
+        btn.textContent=letter;
+        btn.id='hm-key-'+letter;
+        btn.addEventListener('click',function(){if(alive)guess(letter);});
+        kb.appendChild(btn);
+      })(alphabet[i]);
+    }
+  }
+
+  function guess(letter){
+    if(!alive) return;
+    if(guessed.indexOf(letter)!==-1) return;
+    guessed.push(letter);
+    var btn=document.getElementById('hm-key-'+letter);
+    if(word.indexOf(letter)!==-1){
+      if(btn) btn.classList.add('correct');
+    } else {
+      wrongLetters.push(letter);
+      wrongCount++;
+      document.getElementById('hm-wrong-count').textContent=wrongCount;
+      if(btn) btn.classList.add('wrong');
+    }
+    document.getElementById('hangman-wrong').textContent=wrongLetters.join(' ');
+    drawGallows(wrongCount);
+    buildWordDisplay();
+    checkEnd();
+  }
+
+  function checkEnd(){
+    // Win
+    var allGuessed=word.split('').every(function(l){return guessed.indexOf(l)!==-1;});
+    if(allGuessed){
+      alive=false; wins++;
+      document.getElementById('hm-wins').textContent=wins;
+      setMsg('🎉 KAZANDIN!','#ffe600');
+      disableKeys();
+      return;
+    }
+    // Lose
+    if(wrongCount>=MAX_WRONG){
+      alive=false; losses++;
+      document.getElementById('hm-losses').textContent=losses;
+      // Reveal word
+      var wd=document.getElementById('hangman-word');
+      var boxes=wd.querySelectorAll('.letter-box');
+      for(var i=0;i<word.length;i++) boxes[i].textContent=word[i];
+      setMsg('💀 '+word,'#ff2d78');
+      disableKeys();
+    }
+  }
+
+  function setMsg(txt,col){
+    var el=document.getElementById('hangman-msg');
+    el.textContent=txt;
+    el.style.color=col;
+  }
+
+  function disableKeys(){
+    document.querySelectorAll('.key-btn').forEach(function(b){b.disabled=true;});
+  }
+
+  window.hangmanStart=function(){
+    var pick=WORDS[Math.floor(Math.random()*WORDS.length)];
+    word=pick.word; guessed=[]; wrongLetters=[]; wrongCount=0; alive=true;
+    document.getElementById('hm-wrong-count').textContent='0';
+    document.getElementById('hangman-wrong').textContent='';
+    document.getElementById('hangman-category').textContent='KATEGORİ: '+pick.cat;
+    setMsg('','#fff');
+    drawGallows(0);
+    buildWordDisplay();
+    buildKeyboard();
+  };
+
+  // Keyboard input for hangman
+  document.addEventListener('keydown',function(e){
+    if(!alive) return;
+    if(!document.getElementById('game-hangman').classList.contains('active')) return;
+    var letter=e.key.toUpperCase();
+    var alphabet='ABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZ';
+    if(alphabet.indexOf(letter)!==-1) guess(letter);
+  });
+
+  // Init idle state
+  drawGallows(0);
+  document.getElementById('hangman-category').textContent='YENİ OYUN\'A BAS';
+  document.getElementById('hangman-word').innerHTML='';
+  document.getElementById('hangman-msg').textContent='';
+})();
+
+/* === MEMORY CARD === */
+(function(){
+  var EMOJIS=['🌸','🦋','⭐','🎮','🍕','🎸','🚀','🌈','🦄','🎯','🍀','🔥'];
+  var cards=[], flipped=[], matched=0, moves=0, locked=false, best={4:null,6:null}, selCols=4;
+
+  window.pickMemSize=function(btn,cols){
+    document.querySelectorAll('.mem-size-btn').forEach(function(b){b.classList.remove('on');});
+    btn.classList.add('on');
+    selCols=cols;
+  };
+
+  window.memoryStart=function(){
+    document.getElementById('memory-sel').style.display='none';
+    document.getElementById('memory-result').textContent='';
+    moves=0; matched=0; locked=false; flipped=[];
+    document.getElementById('m-moves').textContent='0';
+    document.getElementById('m-matched').textContent='0';
+    var bestKey=selCols;
+    document.getElementById('m-best').textContent=best[bestKey]!==null?best[bestKey]+'H':'--';
+
+    var pairs= selCols===4 ? 8 : 12;
+    var emojisUsed=EMOJIS.slice(0,pairs);
+    var deck=emojisUsed.concat(emojisUsed);
+    // Shuffle
+    for(var i=deck.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var tmp=deck[i];deck[i]=deck[j];deck[j]=tmp;}
+
+    cards=[];
+    var grid=document.getElementById('memory-grid');
+    grid.innerHTML='';
+    var rows= selCols===4 ? 4 : 6;
+    grid.style.gridTemplateColumns='repeat('+selCols+',1fr)';
+    grid.style.maxWidth= selCols===4 ? '420px' : '480px';
+
+    for(var k=0;k<deck.length;k++){
+      (function(idx,emoji){
+        var card={id:idx,emoji:emoji,el:null,isFlipped:false,isMatched:false};
+        var el=document.createElement('div');
+        el.className='mem-card';
+        el.innerHTML='<span class="back">🂠</span><span class="front">'+emoji+'</span>';
+        el.addEventListener('click',function(){flipCard(card);});
+        grid.appendChild(el);
+        card.el=el;
+        cards.push(card);
+      })(k,deck[k]);
+    }
+  };
+
+  function flipCard(card){
+    if(locked||card.isFlipped||card.isMatched) return;
+    card.isFlipped=true;
+    card.el.classList.add('flipped');
+    flipped.push(card);
+    if(flipped.length===2){
+      moves++;
+      document.getElementById('m-moves').textContent=moves;
+      locked=true;
+      setTimeout(checkMatch,700);
+    }
+  }
+
+  function checkMatch(){
+    var a=flipped[0], b=flipped[1];
+    if(a.emoji===b.emoji){
+      a.isMatched=true; b.isMatched=true;
+      a.el.classList.add('matched'); b.el.classList.add('matched');
+      matched+=2;
+      document.getElementById('m-matched').textContent=matched/2;
+      flipped=[];
+      locked=false;
+      if(matched===cards.length) gameWon();
+    } else {
+      setTimeout(function(){
+        a.isFlipped=false; b.isFlipped=false;
+        a.el.classList.remove('flipped'); b.el.classList.remove('flipped');
+        flipped=[];
+        locked=false;
+      },400);
+    }
+  }
+
+  function gameWon(){
+    var bestKey=selCols;
+    if(best[bestKey]===null||moves<best[bestKey]){
+      best[bestKey]=moves;
+      document.getElementById('m-best').textContent=moves+'H';
+    }
+    var res=document.getElementById('memory-result');
+    res.textContent='🎉 '+moves+' HAMLEDE TAMAMLANDI!';
+    res.style.color='#ffe600';
+    setTimeout(function(){
+      document.getElementById('memory-sel').style.display='flex';
+    },1800);
+  }
+
+  // Init
+  document.getElementById('memory-sel').style.display='flex';
+  document.getElementById('memory-grid').innerHTML='';
 })();
 </script>
 </body>
